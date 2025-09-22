@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Partidos</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏆 Gestión de Partidos</h1>
+            <nav>
+                <button class="nav-btn active" data-section="form">Añadir Partido</button>
+                <button class="nav-btn" data-section="summary">Resumen</button>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Sección del Formulario -->
+            <section id="form-section" class="section active">
+                <div class="form-container">
+                    <h2>Datos del Partido</h2>
+                    <form id="match-form">
+                        <div class="form-group">
+                            <label for="date">Fecha del Partido:</label>
+                            <input type="date" id="date" name="date" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="match-type">Tipo de Partido:</label>
+                            <select id="match-type" name="matchType" required>
+                                <option value="">Selecciona el tipo</option>
+                                <option value="futchampions">🏆 FUT Champions</option>
+                                <option value="rivals">⚔️ Division Rivals</option>
+                                <option value="squadbattles">🎯 Squad Battles</option>
+                                <option value="otro">📄 Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="opponent">Rival:</label>
+                            <div class="opponent-row">
+                                <input type="text" id="opponent" name="opponent" placeholder="Nombre del equipo rival" required>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="position" value="local" checked>
+                                        <span class="radio-custom"></span>
+                                        🏠 Local
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="position" value="visitor">
+                                        <span class="radio-custom"></span>
+                                        ✈️ Visitante
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Scoreboard -->
+                        <div class="scoreboard">
+                            <div class="team-left">
+                                <div class="team-name">SinPies FC</div>
+                                <div class="team-logo"><img src="rsg.png" alt="SinPies FC" style="object-fit: contain;"></div>
+                            </div>
+                            <div class="score-display">
+                                <span id="score-left">0</span>
+                                <span class="score-separator">:</span>
+                                <span id="score-right">0</span>
+                            </div>
+                            <div class="team-right">
+                                <div class="team-logo">⚽</div>
+                                <div class="team-name" id="rival-name-display">Rival</div>
+                            </div>
+                        </div>
+
+                        <!-- Minuto del partido -->
+                        <div class="form-group">
+                            <label for="match-minute">Minuto del Partido:</label>
+                            <div class="slider-container">
+                                <input type="range" id="match-minute" name="matchMinute" min="0" max="90" value="0" class="minute-slider">
+                                <div class="slider-labels">
+                                    <span>0'</span>
+                                    <span id="minute-display">0'</span>
+                                    <span>90'</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estadísticas Comparativas -->
+                        <div class="comparative-stats">
+                            
+                            <!-- Goles -->
+                            <div class="stat-row">
+                                <div class="stat-input">
+                                    <input type="number" id="goals-for" name="goalsFor" min="0" value="0" required>
+                                </div>
+                                <div class="stat-label">Goles</div>
+                                <div class="stat-input">
+                                    <input type="number" id="goals-against" name="goalsAgainst" min="0" value="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Posesión -->
+                            <div class="stat-row">
+                                <div class="stat-input">
+                                    <input type="number" id="possession" name="possession" min="0" max="100" value="50" required>
+                                </div>
+                                <div class="stat-label">Posesión (%)</div>
+                                <div class="stat-input">
+                                    <input type="number" id="rival-possession" name="rivalPossession" min="0" max="100" value="50" required>
+                                </div>
+                            </div>
+
+                            <!-- Tiros -->
+                            <div class="stat-row">
+                                <div class="stat-input">
+                                    <input type="number" id="shots" name="shots" min="0" value="0" required>
+                                </div>
+                                <div class="stat-label">Tiros</div>
+                                <div class="stat-input">
+                                    <input type="number" id="rival-shots" name="rivalShots" min="0" value="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Goles Esperados -->
+                            <div class="stat-row">
+                                <div class="stat-input">
+                                    <input type="number" id="expected-goals" name="expectedGoals" min="0" step="0.1" value="0" required>
+                                </div>
+                                <div class="stat-label">Goles Esperados</div>
+                                <div class="stat-input">
+                                    <input type="number" id="rival-expected-goals" name="rivalExpectedGoals" min="0" step="0.1" value="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Paradas -->
+                            <div class="stat-row">
+                                <div class="stat-input">
+                                    <input type="number" id="saves" name="saves" min="0" value="0" required>
+                                </div>
+                                <div class="stat-label">Paradas</div>
+                                <div class="stat-input">
+                                    <input type="number" id="rival-saves" name="rivalSaves" min="0" value="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Fueras de Juego -->
+                            <div class="stat-row">
+                                <div class="stat-input">
+                                    <input type="number" id="offside" name="offside" min="0" value="0" required>
+                                </div>
+                                <div class="stat-label">Fueras de Juego</div>
+                                <div class="stat-input">
+                                    <input type="number" id="rival-offside" name="rivalOffside" min="0" value="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Corners -->
+                            <div class="stat-row">
+                                <div class="stat-input">
+                                    <input type="number" id="corners" name="corners" min="0" value="0" required>
+                                </div>
+                                <div class="stat-label">Corners</div>
+                                <div class="stat-input">
+                                    <input type="number" id="rival-corners" name="rivalCorners" min="0" value="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Tarjetas Amarillas -->
+                            <div class="stat-row">
+                                <div class="stat-input">
+                                    <input type="number" id="yellow-cards" name="yellowCards" min="0" value="0" required>
+                                </div>
+                                <div class="stat-label">Tarjetas Amarillas</div>
+                                <div class="stat-input">
+                                    <input type="number" id="rival-yellow-cards" name="rivalYellowCards" min="0" value="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Tarjetas Rojas -->
+                            <div class="stat-row">
+                                <div class="stat-input">
+                                    <input type="number" id="red-cards" name="redCards" min="0" value="0" required>
+                                </div>
+                                <div class="stat-label">Tarjetas Rojas</div>
+                                <div class="stat-input">
+                                    <input type="number" id="rival-red-cards" name="rivalRedCards" min="0" value="0" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn">Guardar Partido</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Sección del Resumen -->
+            <section id="summary-section" class="section">
+                <div class="summary-container">
+                    <h2>Resumen de Partidos</h2>
+                    
+                    <!-- Filtros -->
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label for="filter-date-from">Desde:</label>
+                            <input type="date" id="filter-date-from">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-date-to">Hasta:</label>
+                            <input type="date" id="filter-date-to">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-type">Tipo:</label>
+                            <select id="filter-type">
+                                <option value="">Todos</option>
+                                <option value="futchampions">🏆 FUT Champions</option>
+                                <option value="rivals">⚔️ Division Rivals</option>
+                                <option value="squadbattles">⚔️ Squad Battles</option>
+                                <option value="entrenamiento">⚧️ Entrenamiento</option>
+                                <option value="otro">📄 Otro</option>
+                            </select>
+                        </div>
+                        <button id="apply-filters" class="filter-btn">Aplicar Filtros</button>
+                        <button id="clear-filters" class="filter-btn secondary">Limpiar</button>
+                    </div>
+
+                    <!-- Estadísticas Generales -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Partidos Jugados</h3>
+                            <span class="stat-value" id="total-matches">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Goles a Favor</h3>
+                            <span class="stat-value" id="total-goals-for">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Goles en Contra</h3>
+                            <span class="stat-value" id="total-goals-against">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Diferencia de Goles</h3>
+                            <span class="stat-value" id="goal-difference">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Minutos por Gol</h3>
+                            <span class="stat-value" id="minutes-per-goal">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <h3>% Victorias</h3>
+                            <span class="stat-value" id="win-percentage">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas Detalladas -->
+                    <div class="detailed-stats">
+                        <h3>📊 Estadísticas Detalladas 📊</h3>
+                        <div class="stats-comparison">
+                            <div class="team-stats">
+                                <h4>🏆 SinPies FC 🏆</h4>
+                                <div class="stat-row">
+                                    <span>Posesión Media:</span>
+                                    <span id="avg-possession">0%</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Tiros por Partido:</span>
+                                    <span id="avg-shots">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>xG por Partido:</span>
+                                    <span id="avg-expected-goals">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Paradas por Partido:</span>
+                                    <span id="avg-saves">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Corners por Partido:</span>
+                                    <span id="avg-corners">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Tarjetas Amarillas:</span>
+                                    <span id="total-yellow-cards">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Tarjetas Rojas:</span>
+                                    <span id="total-red-cards">0</span>
+                                </div>
+                            </div>
+                            
+                            <div class="team-stats">
+                                <h4>⚔️ Rivales ⚔️</h4>
+                                <div class="stat-row">
+                                    <span>Posesión Media:</span>
+                                    <span id="avg-rival-possession">0%</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Tiros por Partido:</span>
+                                    <span id="avg-rival-shots">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>xG por Partido:</span>
+                                    <span id="avg-rival-expected-goals">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Paradas por Partido:</span>
+                                    <span id="avg-rival-saves">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Corners por Partido:</span>
+                                    <span id="avg-rival-corners">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Tarjetas Amarillas:</span>
+                                    <span id="total-rival-yellow-cards">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Tarjetas Rojas:</span>
+                                    <span id="total-rival-red-cards">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Partidos -->
+                    <div class="matches-list">
+                        <h3>Partidos Recientes</h3>
+                        <div id="matches-container">
+                            <p class="no-matches">No hay partidos registrados</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
