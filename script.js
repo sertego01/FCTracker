@@ -139,7 +139,9 @@ async function handleFormSubmit(e) {
         
         // Limpiar formulario
         matchForm.reset();
-        initializeApp(); // Restablecer fecha actual
+        // Solo establecer la fecha actual, dejar el resto vacío
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date').value = today;
         
         // Recargar partidos
         await loadMatches();
@@ -436,9 +438,7 @@ function initializePossessionSync() {
     possessionInput.addEventListener('input', syncPossession);
     rivalPossessionInput.addEventListener('input', syncRivalPossession);
     
-    // Inicializar con valores balanceados
-    possessionInput.value = 50;
-    rivalPossessionInput.value = 50;
+    // No establecer valores por defecto - dejar vacíos para evitar problemas en móvil
 }
 
 // Mostrar notificación
@@ -501,12 +501,12 @@ function initializeScoreboard() {
         
         if (isVisitor) {
             // Si es visitante: rival a la izquierda, yo a la derecha
-            scoreLeft.textContent = goalsAgainstInput.value || '0';
-            scoreRight.textContent = goalsForInput.value || '0';
+            scoreLeft.textContent = goalsAgainstInput.value || '';
+            scoreRight.textContent = goalsForInput.value || '';
         } else {
             // Si es local: yo a la izquierda, rival a la derecha
-            scoreLeft.textContent = goalsForInput.value || '0';
-            scoreRight.textContent = goalsAgainstInput.value || '0';
+            scoreLeft.textContent = goalsForInput.value || '';
+            scoreRight.textContent = goalsAgainstInput.value || '';
         }
     }
 
@@ -524,7 +524,7 @@ function initializeScoreboard() {
         rivalNameDisplay.textContent = opponentInput.value || 'Rival';
     });
 
-    // Inicializar scoreboard
+    // Inicializar scoreboard con valores vacíos
     updateScoreboard();
 }
 
