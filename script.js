@@ -56,6 +56,9 @@ function initializeApp() {
     filterDateFrom.value = '2025-09-19'; // 19/09/2025
     filterDateTo.value = today;
     
+    // Establecer Division Rivals como tipo por defecto en el filtro
+    filterType.value = 'rivals';
+    
     // Inicializar scoreboard, slider y radio buttons
     initializeScoreboard();
     initializeMinuteSlider();
@@ -89,6 +92,14 @@ function switchSection(section) {
 // Manejar envío del formulario
 async function handleFormSubmit(e) {
     e.preventDefault();
+    
+    // Rellenar inputs vacíos con 0 antes de obtener los datos
+    const numberInputs = matchForm.querySelectorAll('input[type="number"]');
+    numberInputs.forEach(input => {
+        if (input.value === '' || input.value === null) {
+            input.value = '0';
+        }
+    });
     
     const formData = new FormData(matchForm);
     // Obtener posición para determinar qué datos van a quién
