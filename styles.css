@@ -703,6 +703,101 @@ input::placeholder, textarea::placeholder {
     transform: translateY(-2px);
 }
 
+/* Gráfico de Resultados */
+.results-chart-container {
+    background: var(--gradient-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.results-chart-container h3 {
+    color: var(--text-color);
+    margin-bottom: 25px;
+    font-size: 1.8rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.chart-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+#resultsChart {
+    max-width: 300px;
+    max-height: 300px;
+    border-radius: 50%;
+    box-shadow: var(--shadow);
+}
+
+.chart-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 200px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 15px;
+    background: var(--card-background);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.legend-item:hover {
+    background: rgba(46, 204, 113, 0.1);
+    transform: translateX(5px);
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.legend-color.victory {
+    background: var(--success-color);
+}
+
+.legend-color.defeat {
+    background: var(--accent-color);
+}
+
+.legend-color.draw {
+    background: var(--warning-color);
+}
+
+.legend-text {
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1rem;
+    flex: 1;
+}
+
+.legend-value {
+    color: var(--text-color);
+    font-weight: 700;
+    font-size: 1.2rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 /* Estadísticas */
 .stats-grid {
     display: grid;
@@ -1092,6 +1187,33 @@ input::placeholder, textarea::placeholder {
     
     .radio-group {
         justify-content: center;
+    }
+    
+    /* Responsive para gráfico */
+    .chart-wrapper {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    #resultsChart {
+        max-width: 250px;
+        max-height: 250px;
+    }
+    
+    .chart-legend {
+        min-width: 150px;
+    }
+    
+    .legend-item {
+        padding: 8px 12px;
+    }
+    
+    .legend-text {
+        font-size: 0.9rem;
+    }
+    
+    .legend-value {
+        font-size: 1rem;
     }
 }
 

@@ -227,6 +227,31 @@
                         <button id="clear-filters" class="filter-btn secondary">Limpiar</button>
                     </div>
 
+                    <!-- Gráfico de Resultados -->
+                    <div class="results-chart-container">
+                        <h3>📊 Resultados de Partidos</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="resultsChart" width="300" height="300"></canvas>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <span class="legend-color victory"></span>
+                                    <span class="legend-text">Victorias</span>
+                                    <span class="legend-value" id="victories-count">0</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color defeat"></span>
+                                    <span class="legend-text">Derrotas</span>
+                                    <span class="legend-value" id="defeats-count">0</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color draw"></span>
+                                    <span class="legend-text">Empates</span>
+                                    <span class="legend-value" id="draws-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Estadísticas Generales -->
                     <div class="stats-grid">
                         <div class="stat-card">

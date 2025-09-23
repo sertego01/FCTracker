@@ -200,6 +200,7 @@ async function applyFilters() {
         
         updateSummary();
         displayMatches();
+        drawResultsChart();
     } catch (error) {
         console.error('Error al aplicar filtros:', error);
         showNotification('Error al aplicar filtros', 'error');
@@ -215,6 +216,115 @@ function clearFilters() {
     filteredMatches = [...allMatches];
     updateSummary();
     displayMatches();
+    drawResultsChart();
+}
+
+// Dibujar gráfico de resultados
+function drawResultsChart() {
+    const canvas = document.getElementById('resultsChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const matches = filteredMatches;
+    
+    // Calcular victorias, derrotas y empates
+    const victories = matches.filter(match => (match.goalsFor || 0) > (match.goalsAgainst || 0)).length;
+    const defeats = matches.filter(match => (match.goalsFor || 0) < (match.goalsAgainst || 0)).length;
+    const draws = matches.filter(match => (match.goalsFor || 0) === (match.goalsAgainst || 0)).length;
+    
+    // Actualizar leyenda
+    document.getElementById('victories-count').textContent = victories;
+    document.getElementById('defeats-count').textContent = defeats;
+    document.getElementById('draws-count').textContent = draws;
+    
+    // Si no hay partidos, mostrar círculo vacío
+    if (matches.length === 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.arc(150, 150, 120, 0, 2 * Math.PI);
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        ctx.fillStyle = '#666666';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Sin datos', 150, 155);
+        return;
+    }
+    
+    // Colores
+    const colors = {
+        victory: '#27ae60',
+        defeat: '#e74c3c',
+        draw: '#f39c12'
+    };
+    
+    // Calcular ángulos
+    const total = victories + defeats + draws;
+    const victoryAngle = (victories / total) * 2 * Math.PI;
+    const defeatAngle = (defeats / total) * 2 * Math.PI;
+    const drawAngle = (draws / total) * 2 * Math.PI;
+    
+    // Limpiar canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Centro y radio
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = 120;
+    
+    let currentAngle = 0;
+    
+    // Dibujar victorias
+    if (victories > 0) {
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + victoryAngle);
+        ctx.closePath();
+        ctx.fillStyle = colors.victory;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        currentAngle += victoryAngle;
+    }
+    
+    // Dibujar derrotas
+    if (defeats > 0) {
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + defeatAngle);
+        ctx.closePath();
+        ctx.fillStyle = colors.defeat;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        currentAngle += defeatAngle;
+    }
+    
+    // Dibujar empates
+    if (draws > 0) {
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + drawAngle);
+        ctx.closePath();
+        ctx.fillStyle = colors.draw;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+    
+    // Agregar porcentajes en el centro
+    if (total > 0) {
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${Math.round((victories / total) * 100)}%`, centerX, centerY - 5);
+        ctx.fillText('Victorias', centerX, centerY + 10);
+    }
 }
 
 // Actualizar estadísticas del resumen
