@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Partidos</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="styles.css">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -41,24 +42,6 @@
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label for="opponent">Rival:</label>
-                            <div class="opponent-row">
-                                <input type="text" id="opponent" name="opponent" placeholder="Nombre del equipo rival" required>
-                                <div class="radio-group">
-                                    <label class="radio-label">
-                                        <input type="radio" name="position" value="local" checked>
-                                        <span class="radio-custom"></span>
-                                        🏠 Local
-                                    </label>
-                                    <label class="radio-label">
-                                        <input type="radio" name="position" value="visitor">
-                                        <span class="radio-custom"></span>
-                                        ✈️ Visitante
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
                         <!-- Scoreboard -->
                         <div class="scoreboard">
                             <div class="team-left">
@@ -72,7 +55,51 @@
                             </div>
                             <div class="team-right">
                                 <div class="team-logo">⚽</div>
-                                <div class="team-name" id="rival-name-display">Rival</div>
+                                <div class="team-name">Rival</div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Posición:</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="position" value="local" checked>
+                                        <span class="radio-custom"></span>
+                                        🏠 Local
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="position" value="visitor">
+                                        <span class="radio-custom"></span>
+                                        ✈️ Visitante
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Opciones:</label>
+                                <div class="customCheckBoxHolder">
+                                    <input class="customCheckBoxInput" id="cCB1" type="checkbox">
+                                    <label class="customCheckBoxWrapper" for="cCB1">
+                                        <div class="customCheckBox">
+                                            <div class="inner">Prórroga</div>
+                                        </div>
+                                    </label>
+
+                                    <input class="customCheckBoxInput" id="cCB2" type="checkbox">
+                                    <label class="customCheckBoxWrapper" for="cCB2">
+                                        <div class="customCheckBox">
+                                            <div class="inner">Penaltis</div>
+                                        </div>
+                                    </label>
+
+                                    <input class="customCheckBoxInput" id="cCB3" type="checkbox">
+                                    <label class="customCheckBoxWrapper" for="cCB3">
+                                        <div class="customCheckBox">
+                                            <div class="inner">Ganado</div>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
@@ -84,7 +111,7 @@
                                 <div class="slider-labels">
                                     <span>0'</span>
                                     <span id="minute-display">90'</span>
-                                    <span>90'</span>
+                                    <span id="max-minute-label">90'</span>
                                 </div>
                             </div>
                         </div>
@@ -218,8 +245,7 @@
                                 <option value="">Todos</option>
                                 <option value="futchampions">🏆 FUT Champions</option>
                                 <option value="rivals" selected>⚔️ Division Rivals</option>
-                                <option value="squadbattles">⚔️ Squad Battles</option>
-                                <option value="entrenamiento">⚧️ Entrenamiento</option>
+                                <option value="squadbattles">🎯 Squad Battles</option>
                                 <option value="otro">📄 Otro</option>
                             </select>
                         </div>

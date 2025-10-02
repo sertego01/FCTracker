@@ -64,6 +64,7 @@ function initializeApp() {
     initializeMinuteSlider();
     initializePositionRadio();
     initializePossessionSync();
+    initializeExtraTimeLogic();
 }
 
 // Cambiar entre secciones
@@ -110,7 +111,10 @@ async function handleFormSubmit(e) {
         date: formData.get('date'),
         matchType: formData.get('matchType'),
         position: position,
-        opponent: formData.get('opponent'),
+        opponent: 'Rival',
+        extraTime: document.getElementById('cCB1').checked,
+        penalties: document.getElementById('cCB2').checked,
+        victory: document.getElementById('cCB3').checked,
         // Estadísticas del equipo propio - intercambiar si es visitante
         goalsFor: isVisitor ? parseInt(formData.get('goalsAgainst')) : parseInt(formData.get('goalsFor')),
         possession: isVisitor ? parseInt(formData.get('rivalPossession')) : parseInt(formData.get('possession')),
@@ -227,10 +231,30 @@ function drawResultsChart() {
     const ctx = canvas.getContext('2d');
     const matches = filteredMatches;
     
-    // Calcular victorias, derrotas y empates
-    const victories = matches.filter(match => (match.goalsFor || 0) > (match.goalsAgainst || 0)).length;
-    const defeats = matches.filter(match => (match.goalsFor || 0) < (match.goalsAgainst || 0)).length;
-    const draws = matches.filter(match => (match.goalsFor || 0) === (match.goalsAgainst || 0)).length;
+    // Calcular victorias, derrotas y empates (considerando penaltis)
+    const victories = matches.filter(match => {
+        if (match.penalties) {
+            return match.victory; // Si hay penaltis, usar el botón "Ganado"
+        } else {
+            return (match.goalsFor || 0) > (match.goalsAgainst || 0); // Sin penaltis, usar goles
+        }
+    }).length;
+    
+    const defeats = matches.filter(match => {
+        if (match.penalties) {
+            return !match.victory; // Si hay penaltis, usar el botón "Ganado"
+        } else {
+            return (match.goalsFor || 0) < (match.goalsAgainst || 0); // Sin penaltis, usar goles
+        }
+    }).length;
+    
+    const draws = matches.filter(match => {
+        if (match.penalties) {
+            return false; // Con penaltis no puede haber empate
+        } else {
+            return (match.goalsFor || 0) === (match.goalsAgainst || 0); // Sin penaltis, usar goles
+        }
+    }).length;
     
     // Actualizar leyenda
     document.getElementById('victories-count').textContent = victories;
@@ -370,8 +394,14 @@ function updateSummary() {
     const totalMinutes = matches.reduce((sum, match) => sum + (match.matchMinute || 0), 0);
     const minutesPerGoal = totalGoalsFor > 0 ? Math.round(totalMinutes / totalGoalsFor) : 0;
     
-    // Calcular % de victorias
-    const victories = matches.filter(match => (match.goalsFor || 0) > (match.goalsAgainst || 0)).length;
+    // Calcular % de victorias (considerando penaltis)
+    const victories = matches.filter(match => {
+        if (match.penalties) {
+            return match.victory; // Si hay penaltis, usar el botón "Ganado"
+        } else {
+            return (match.goalsFor || 0) > (match.goalsAgainst || 0); // Sin penaltis, usar goles
+        }
+    }).length;
     const winPercentage = totalMatches > 0 ? Math.round((victories / totalMatches) * 100) : 0;
 
     // Calcular estadísticas del equipo propio
@@ -449,18 +479,36 @@ function displayMatches() {
 
     const matchesHTML = matches.map(match => {
         const date = new Date(match.date).toLocaleDateString('es-ES');
-        const result = match.goalsFor > match.goalsAgainst ? 'Victoria' : 
-                     match.goalsFor < match.goalsAgainst ? 'Derrota' : 'Empate';
-        const resultClass = match.goalsFor > match.goalsAgainst ? 'victory' : 
-                           match.goalsFor < match.goalsAgainst ? 'defeat' : 'draw';
+        
+        // Si hay penaltis, el resultado se determina por el botón "Ganado"
+        let result, resultClass;
+        if (match.penalties) {
+            if (match.victory) {
+                result = 'Victoria';
+                resultClass = 'victory';
+            } else {
+                result = 'Derrota';
+                resultClass = 'defeat';
+            }
+        } else {
+            // Sin penaltis, se determina por los goles
+            result = match.goalsFor > match.goalsAgainst ? 'Victoria' : 
+                    match.goalsFor < match.goalsAgainst ? 'Derrota' : 'Empate';
+            resultClass = match.goalsFor > match.goalsAgainst ? 'victory' : 
+                         match.goalsFor < match.goalsAgainst ? 'defeat' : 'draw';
+        }
 
         return `
-            <div class="match-item">
+            <div class="match-item ${resultClass}">
                 <div class="match-header">
                     <div class="match-info">
                         <span class="match-date">${date}</span>
                         <span class="match-teams">${match.position === 'visitor' ? `${match.opponent} ${match.goalsAgainst || 0} - ${match.goalsFor || 0} SinPies FC` : `SinPies FC ${match.goalsFor || 0} - ${match.goalsAgainst || 0} ${match.opponent}`}</span>
                         <span class="match-minute">Minuto: ${match.matchMinute || 0}'</span>
+                    </div>
+                    <div class="match-extra">
+                        ${match.extraTime ? '<span class="match-extra-info">⏰ Prórroga</span>' : ''}
+                        ${match.penalties ? `<span class="match-extra-info ${match.victory ? '' : 'penalties-lost'}">⚽ Penaltis</span>` : ''}
                     </div>
                     <div class="match-actions">
                         <span class="match-type">${getMatchTypeLabel(match.matchType)}</span>
@@ -471,31 +519,31 @@ function displayMatches() {
                 </div>
                 <div class="match-details">
                     <div class="match-detail">
-                        <span>Posesión:</span>
+                        <span>Posesión:&nbsp;&nbsp;</span>
                         <span>${match.possession || 0}%</span>
                     </div>
                     <div class="match-detail">
-                        <span>Tiros:</span>
+                        <span>Tiros:&nbsp;&nbsp;</span>
                         <span>${match.shots || 0}</span>
                     </div>
                     <div class="match-detail">
-                        <span>xG:</span>
+                        <span>xG:&nbsp;&nbsp;</span>
                         <span>${match.expectedGoals || 0}</span>
                     </div>
                     <div class="match-detail">
-                        <span>Paradas:</span>
+                        <span>Paradas:&nbsp;&nbsp;</span>
                         <span>${match.saves || 0}</span>
                     </div>
                     <div class="match-detail">
-                        <span>Fueras:</span>
+                        <span>Fueras:&nbsp;&nbsp;</span>
                         <span>${match.offside || 0}</span>
                     </div>
                     <div class="match-detail">
-                        <span>Corners:</span>
+                        <span>Corners:&nbsp;&nbsp;</span>
                         <span>${match.corners || 0}</span>
                     </div>
                     <div class="match-detail tarjetas">
-                        <span>Tarjetas:</span>
+                        <span>Tarjetas:&nbsp;&nbsp;</span>
                         <span>🟨${match.yellowCards || 0} 🟥${match.redCards || 0}</span>
                     </div>
                 </div>
@@ -588,6 +636,8 @@ function showNotification(message, type = 'info') {
         notification.style.background = '#27ae60';
     } else if (type === 'error') {
         notification.style.background = '#e74c3c';
+    } else if (type === 'warning') {
+        notification.style.background = '#f39c12';
     } else {
         notification.style.background = '#3498db';
     }
@@ -610,10 +660,8 @@ function showNotification(message, type = 'info') {
 function initializeScoreboard() {
     const goalsForInput = document.getElementById('goals-for');
     const goalsAgainstInput = document.getElementById('goals-against');
-    const opponentInput = document.getElementById('opponent');
     const scoreLeft = document.getElementById('score-left');
     const scoreRight = document.getElementById('score-right');
-    const rivalNameDisplay = document.getElementById('rival-name-display');
     const positionRadios = document.querySelectorAll('input[name="position"]');
 
     // Función para actualizar el scoreboard según la posición
@@ -638,11 +686,6 @@ function initializeScoreboard() {
     // Actualizar scoreboard cuando cambie la posición
     positionRadios.forEach(radio => {
         radio.addEventListener('change', updateScoreboard);
-    });
-
-    // Actualizar nombre del rival
-    opponentInput.addEventListener('input', () => {
-        rivalNameDisplay.textContent = opponentInput.value || 'Rival';
     });
 
     // Inicializar scoreboard con valores vacíos
@@ -682,15 +725,114 @@ function initializePositionRadio() {
 function initializeMinuteSlider() {
     const minuteSlider = document.getElementById('match-minute');
     const minuteDisplay = document.getElementById('minute-display');
+    const extraTimeCheckbox = document.getElementById('cCB1');
+
+    // Función para actualizar el máximo del slider
+    function updateSliderMax() {
+        const maxLabel = document.getElementById('max-minute-label');
+        
+        if (extraTimeCheckbox.checked) {
+            minuteSlider.max = '120';
+            maxLabel.textContent = '120\'';
+            // Si se marca prórroga, ajustar automáticamente a 120 minutos
+            minuteSlider.value = '120';
+        } else {
+            minuteSlider.max = '90';
+            maxLabel.textContent = '90\'';
+            // Si se desmarca prórroga, ajustar automáticamente a 90 minutos
+            minuteSlider.value = '90';
+        }
+        minuteDisplay.textContent = minuteSlider.value + "'";
+    }
 
     // Actualizar display cuando cambie el slider
     minuteSlider.addEventListener('input', () => {
         minuteDisplay.textContent = minuteSlider.value + "'";
     });
 
+    // Actualizar cuando cambie el checkbox de prórroga
+    extraTimeCheckbox.addEventListener('change', updateSliderMax);
+
     // Inicializar display
     minuteDisplay.textContent = minuteSlider.value + "'";
 }
+
+// Inicializar lógica de prórroga y empates
+function initializeExtraTimeLogic() {
+    const extraTimeCheckbox = document.getElementById('cCB1');
+    const penaltiesCheckbox = document.getElementById('cCB2');
+    const victoryCheckbox = document.getElementById('cCB3');
+    const goalsForInput = document.getElementById('goals-for');
+    const goalsAgainstInput = document.getElementById('goals-against');
+    const matchTypeSelect = document.getElementById('match-type');
+
+    // Función para actualizar el estado de los checkboxes
+    function updateCheckboxStates() {
+        const isDivisionRivals = matchTypeSelect.value === 'rivals';
+        
+        // Prórroga está deshabilitada solo en Division Rivals
+        extraTimeCheckbox.disabled = isDivisionRivals;
+        
+        // Si es Division Rivals, desactivar todos los checkboxes
+        if (isDivisionRivals) {
+            extraTimeCheckbox.checked = false;
+            penaltiesCheckbox.checked = false;
+            victoryCheckbox.checked = false;
+        }
+        
+        // Penaltis solo se puede activar si Prórroga está activada
+        penaltiesCheckbox.disabled = !extraTimeCheckbox.checked || isDivisionRivals;
+        
+        // Ganado solo se puede activar si Penaltis está activada
+        victoryCheckbox.disabled = !penaltiesCheckbox.checked || isDivisionRivals;
+        
+        // Si se desactiva Prórroga, desactivar también Penaltis y Ganado
+        if (!extraTimeCheckbox.checked) {
+            penaltiesCheckbox.checked = false;
+            victoryCheckbox.checked = false;
+        }
+        
+        // Si se desactiva Penaltis, desactivar también Ganado
+        if (!penaltiesCheckbox.checked) {
+            victoryCheckbox.checked = false;
+        }
+    }
+
+    // Función para validar empates con prórroga
+    function validateExtraTimeDraw() {
+        if (extraTimeCheckbox.checked) {
+            const goalsFor = parseInt(goalsForInput.value) || 0;
+            const goalsAgainst = parseInt(goalsAgainstInput.value) || 0;
+            
+            // Si hay prórroga y es empate, mostrar notificación
+            if (goalsFor === goalsAgainst && goalsFor > 0) {
+                showNotification('⚠️ Con prórroga no puede haber empate. Debe haber un ganador.', 'warning');
+            }
+        }
+    }
+
+    // Event listeners para los checkboxes
+    extraTimeCheckbox.addEventListener('change', () => {
+        updateCheckboxStates();
+        validateExtraTimeDraw();
+    });
+    
+    penaltiesCheckbox.addEventListener('change', updateCheckboxStates);
+    victoryCheckbox.addEventListener('change', () => {
+        // No necesita lógica adicional, solo actualizar estados
+    });
+
+    // Event listener para cuando cambie el tipo de partido
+    matchTypeSelect.addEventListener('change', updateCheckboxStates);
+
+    // Event listeners para validar cuando cambien los goles
+    goalsForInput.addEventListener('input', validateExtraTimeDraw);
+    goalsAgainstInput.addEventListener('input', validateExtraTimeDraw);
+    
+    // Inicializar estados
+    updateCheckboxStates();
+}
+
 
 // Agregar estilos de animación para las notificaciones
 const style = document.createElement('style');
